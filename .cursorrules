@@ -1,0 +1,57 @@
+# Tower FDE Workflow Agent — Cursor Rules
+
+## Project Context
+LangGraph-based workflow agent for a Forward Deployed Engineer at Tower (Python-native serverless data stack on Apache Iceberg). Automates admin work across customer engagements: discovery, PoC prep, proposals, follow-up.
+
+## Shared Source of Truth
+- `MEMORY_BANK.md` — Architecture decisions, progress, patterns
+- `.cursorrules` — This file
+- `.agents/skills` — Antigravity agent skills
+
+Read MEMORY_BANK.md before making architectural decisions.
+
+## Code Standards
+
+### Python
+- Python 3.12+, use modern typing (PEP 695 style where possible)
+- Use `uv` for package management (not pip/venv)
+- Async-first: all graph nodes are `async def`
+- Type hints on all function signatures
+- No docstrings unless logic is non-obvious
+- Pydantic for config (`pydantic-settings`), TypedDict for graph state
+
+### Project Structure
+- One file per graph node, each exports a single async function
+- Subgraph wiring in `__init__.py` via factory functions (`build_X_subgraph()`)
+- Prompts in `src/llm/prompts/` (Python) and `prompts/` (Markdown templates)
+- Tests mirror `src/` structure
+
+### LangGraph Patterns
+- Use `interrupt()` inside nodes (LangGraph 0.4+), not `interrupt_before`
+- State schema in `src/graph/state.py` — `CustomerState` is the single state type
+- Model routing: `get_llm("fast")` for Haiku, `get_llm("strong")` for Sonnet
+- OpenRouter via `langchain-openai` with `base_url="https://openrouter.ai/api/v1"`
+- SqliteSaver checkpointer, one thread per customer
+
+### Knowledge Base
+- ChromaDB embedded mode, 5 collections
+- Local embeddings (`all-MiniLM-L6-v2`), never API embeddings
+- `retrieve_similar()` in `src/kb/store.py` — always use metadata filtering
+
+### UI
+- FastAPI + Jinja2 + HTMX, no SPA
+- SSE for real-time graph execution status
+- PicoCSS or Tailwind, no build step
+
+### Testing
+- Dummy email fixtures in `tests/fixtures/emails/` (JSON)
+- No live Gmail in v1
+- Mock LLM calls in tests via `conftest.py` fixtures
+
+## Do NOT
+- Use Anthropic API directly (use OpenRouter)
+- Create SPA or React frontend
+- Add PostgreSQL, Redis, or task queues
+- Add live Gmail integration in v1
+- Over-abstract — one-time operations don't need helpers
+- Add comments/docstrings to unchanged code

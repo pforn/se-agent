@@ -1,0 +1,8 @@
+{
+  "from": "sarah.kim@acmecorp.com",
+  "to": "fde@tower.dev",
+  "subject": "Tower proposal request — Acme Corp data platform migration",
+  "body": "Hi,\n\nFollowing the successful PoC, we'd like to move forward with a formal proposal. Our procurement team needs the following:\n\n1. Executive summary of the proposed solution\n2. Technical architecture (what we validated in the PoC, plus production considerations)\n3. Migration plan: phased approach from Snowflake to Tower\n   - Phase 1: Analytics pipelines (the PoC scope, expanded)\n   - Phase 2: ML feature pipelines\n   - Phase 3: Real-time streaming pipelines\n4. Deployment requirements: IAM roles, networking (VPC peering?), security controls\n5. Pricing: estimated annual cost for our data volumes (80TB, 500GB/day ingestion)\n6. Support and SLA terms\n7. Timeline for full migration\n\nWe're comparing against:\n- Staying on Snowflake (renegotiated contract)\n- Databricks Unity Catalog + Delta UniForm\n\nDecision committee: myself (VP Eng), Jordan (Head of Data Eng), our CISO (for security review), and CFO (for budget approval).\n\nTarget decision date: end of April.\n\nPlease send the proposal by April 4th.\n\nThanks,\nSarah Kim\nVP of Engineering, Acme Corp",
+  "labels": ["INBOX", "IMPORTANT"],
+  "timestamp": "2026-04-01T09:00:00Z"
+}

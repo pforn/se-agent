@@ -1,0 +1,64 @@
+# Tower FDE Workflow Agent — Agent Skills
+
+## Project Context
+LangGraph-based workflow agent for a Forward Deployed Engineer at Tower.
+Read `MEMORY_BANK.md` for full architecture decisions and current progress.
+
+## Skills
+
+### discovery-node
+Build or modify a discovery subgraph node.
+- Location: `src/graph/discovery/`
+- Pattern: async function, takes `CustomerState`, returns dict
+- Uses `get_llm("strong")` for generation, `get_llm("fast")` for classification
+- May use `interrupt()` for HITL approval
+- May use `retrieve_similar()` from `src/kb/store.py` for KB retrieval
+
+### poc-node
+Build or modify a PoC/demo prep subgraph node.
+- Location: `src/graph/poc/`
+- Same patterns as discovery-node
+- `competitive_positioning` uses Tavily via `src/integrations/tavily_search.py`
+
+### proposal-node
+Build or modify a proposal subgraph node.
+- Location: `src/graph/proposal/`
+- `compile_document` is a tool node (no LLM), uses `src/integrations/gdrive.py`
+
+### followup-node
+Build or modify a follow-up subgraph node.
+- Location: `src/graph/followup/`
+- `extract_product_feedback` feeds the product feedback loop
+- `update_health_score` uses Haiku, no interrupt
+
+### kb-operation
+Work with the ChromaDB knowledge base.
+- Store: `src/kb/store.py` — ChromaDB client, 5 collections, `retrieve_similar()`
+- Indexer: `src/kb/indexer.py` — post-approval auto-indexing
+- Embeddings: local `all-MiniLM-L6-v2`, never API
+
+### ui-component
+Build or modify the FastAPI + HTMX UI.
+- Routes: `src/ui/routes.py`
+- Templates: `src/ui/templates/` (Jinja2)
+- Approval flow: approve/edit/reject via `Command(resume=...)` on LangGraph
+
+### integration
+Work with external services.
+- Gmail: `src/integrations/gmail.py` (v2 only, not in v1)
+- Google Drive: `src/integrations/gdrive.py`
+- Tavily: `src/integrations/tavily_search.py`
+- OpenRouter: `src/llm/models.py`
+
+### test-fixture
+Create or modify test fixtures.
+- Dummy emails: `tests/fixtures/emails/` (JSON)
+- Graph tests: `tests/test_graph/`
+- KB tests: `tests/test_kb/`
+- Mock LLM: `tests/conftest.py`
+
+## Rules
+- Always read `MEMORY_BANK.md` before starting work
+- Use OpenRouter, never Anthropic direct
+- No live Gmail in v1 — use dummy fixtures
+- Update `MEMORY_BANK.md` after completing a milestone

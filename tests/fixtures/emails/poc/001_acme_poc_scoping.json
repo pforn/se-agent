@@ -1,0 +1,8 @@
+{
+  "from": "jordan.chen@acmecorp.com",
+  "to": "fde@tower.dev",
+  "subject": "Re: Tower PoC — scope and timeline",
+  "body": "Thanks for the reference architecture — it looks solid. Here's what we'd like for the PoC:\n\nScope:\n- Migrate our 'orders' pipeline (PostgreSQL CDC → S3 → Snowflake → dbt models → BI)\n- Target: PostgreSQL CDC → S3 → Tower (Iceberg) → dbt models → Trino for BI queries\n- Include the 3 dbt models that power our revenue dashboard (orders_daily, revenue_by_region, customer_ltv)\n- Demonstrate Spark reading the same Iceberg tables for our ML feature pipeline\n\nSuccess criteria:\n- dbt models run successfully on Tower-managed Iceberg tables\n- Query performance on Trino is within 2x of current Snowflake performance\n- Spark can read the same tables without data duplication\n- End-to-end pipeline runs in under 30 minutes (currently ~45 min on Snowflake for this subset)\n\nTimeline: 2 weeks. Jordan and 2 ICs (Lisa Zhang, data engineer + Raj Gupta, ML engineer) available for pairing.\n\nOne question: does Tower support partition evolution? We partition orders by date but want to switch to date + region without rewriting history.\n\nLet me know if this scope works.\n\n— Jordan",
+  "labels": ["INBOX"],
+  "timestamp": "2026-03-22T10:00:00Z"
+}

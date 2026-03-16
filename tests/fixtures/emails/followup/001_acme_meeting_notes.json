@@ -1,0 +1,8 @@
+{
+  "from": "fde@tower.dev",
+  "to": "fde@tower.dev",
+  "subject": "Meeting notes: Acme Corp discovery call 2026-03-18",
+  "body": "Attendees: Jordan Chen (Head of Data Eng), Sarah Kim (VP Eng), me\n\nKey discussion points:\n\n1. Their Snowflake contract renews in Q3 — that's the forcing function. Sarah wants a decision by end of May.\n\n2. Jordan is the technical champion. Very knowledgeable about Iceberg, has already experimented with PyIceberg locally. Main concern: can Tower handle their dbt model count (400+) without performance regression?\n\n3. Sarah cares about TCO. Asked for a cost comparison: current Snowflake spend (~$800k/yr) vs projected Tower + S3 + compute. She's the economic buyer.\n\n4. They have a compliance requirement — SOC2 Type II. Need to verify Tower meets this. Jordan mentioned their security team will need to review.\n\n5. Interesting use case: they want to serve ML features from the same Iceberg tables that dbt writes to. Currently they maintain a separate feature store (Feast) which is a pain.\n\n6. Competitive concern: Databricks pitched them on Delta UniForm as 'the best of both worlds.' Jordan is skeptical but Sarah was impressed by the pitch.\n\n7. Next steps:\n   - I'll send a reference architecture for their stack\n   - Jordan will share their dbt project structure so I can estimate migration effort\n   - Need to get Tower eng input on dbt-core 1.8 compatibility timeline\n   - Schedule a deeper technical dive with Jordan's team (3-4 ICs) next week\n\nSentiment: Jordan is very positive, Sarah is cautiously optimistic but needs numbers.",
+  "labels": ["NOTES"],
+  "timestamp": "2026-03-18T17:30:00Z"
+}

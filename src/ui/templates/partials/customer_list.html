@@ -1,0 +1,32 @@
+{% if customers %}
+<table>
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Phase</th>
+            <th>Health</th>
+            <th>Updated</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in customers %}
+        <tr>
+            <td><a href="/customer/{{ c.customer_id }}">{{ c.customer_name }}</a></td>
+            <td><span class="phase-badge phase-{{ c.phase }}">{{ c.phase }}</span></td>
+            <td>
+                {% if c.health_score is not none %}
+                    <span class="health-score {% if c.health_score >= 70 %}health-high{% elif c.health_score >= 40 %}health-mid{% else %}health-low{% endif %}">
+                        {{ c.health_score }}
+                    </span>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+            <td>{{ c.updated_at[:10] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No customers yet. Add one above.</p>
+{% endif %}

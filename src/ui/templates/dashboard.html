@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Tower FDE Agent{% endblock %}
+{% block content %}
+<h2>Customers</h2>
+
+<details>
+    <summary>Add Customer</summary>
+    <form hx-post="/customer/create" hx-target="#customer-list" hx-swap="innerHTML">
+        <div class="grid">
+            <label>
+                ID
+                <input type="text" name="customer_id" placeholder="acme-corp" required>
+            </label>
+            <label>
+                Name
+                <input type="text" name="customer_name" placeholder="Acme Corp" required>
+            </label>
+        </div>
+        <button type="submit">Create</button>
+    </form>
+</details>
+
+<div id="customer-list">
+    {% include "partials/customer_list.html" %}
+</div>
+{% endblock %}

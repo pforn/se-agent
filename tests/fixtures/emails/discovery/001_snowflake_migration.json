@@ -1,0 +1,8 @@
+{
+  "from": "jordan.chen@acmecorp.com",
+  "to": "fde@tower.dev",
+  "subject": "Exploring Iceberg migration from Snowflake",
+  "body": "Hi,\n\nI'm Jordan Chen, Head of Data Engineering at Acme Corp. We're a Series D fintech company (~200 engineers, 40 on data). We currently run Snowflake Enterprise on AWS with about 80TB of data, ingesting ~500GB/day from Salesforce, PostgreSQL (main transactional DB), and Kafka streams from our payment processing service.\n\nOur stack:\n- Snowflake Enterprise (compute + storage)\n- dbt-core 1.8 for transformations (~400 models, longest run is 4.5 hours)\n- Airflow 2.9 on MWAA for orchestration\n- Some Spark 3.5 jobs on EMR for ML feature engineering\n- S3 for raw landing zone\n\nPain points:\n1. Snowflake costs have grown 3x YoY and we're hitting our contract ceiling\n2. dbt runs are getting slower — our nightly batch takes 4.5 hours and we need it under 2\n3. We want to query the same data from both Spark (ML team) and our BI tools without maintaining copies\n4. Vendor lock-in concerns — we want to own our data format\n\nWe've been reading about Iceberg and Tower looks interesting. Can we set up a call to discuss whether Tower could help us migrate off Snowflake while keeping our dbt + Airflow workflows intact?\n\nAlso cc'ing our VP of Engineering, Sarah Kim (sarah.kim@acmecorp.com), who owns the budget for this initiative.\n\nBest,\nJordan",
+  "labels": ["INBOX", "UNREAD"],
+  "timestamp": "2026-03-15T09:30:00Z"
+}

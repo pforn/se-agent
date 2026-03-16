@@ -1,0 +1,8 @@
+{
+  "from": "alex.rivera@novahealth.ai",
+  "to": "fde@tower.dev",
+  "subject": "Greenfield data platform — evaluating Tower",
+  "body": "Hi Tower team,\n\nAlex Rivera here, founding data engineer at NovaHealth (Series A, healthcare AI startup). We're building our data platform from scratch and want to do it right.\n\nWhat we have today:\n- PostgreSQL (main app DB, ~200GB)\n- A few Python scripts pulling from third-party health APIs\n- Everything lives in a single AWS account\n- No warehouse, no catalog, no orchestrator yet\n\nWhat we need:\n1. A lakehouse that can handle both batch analytics and near-real-time ML feature serving\n2. Something that won't require a dedicated data platform team to maintain (we're 3 data people total)\n3. Iceberg as the table format (our investors are pushing for open formats)\n4. Budget-friendly — we're pre-revenue\n\nWe're looking at: Tower, Tabular (now part of Databricks?), running our own Iceberg + Trino + Airflow stack, or just going with Snowflake and dealing with lock-in later.\n\nCan Tower work for a small team that needs serverless simplicity? What does the onboarding look like?\n\nCheers,\nAlex",
+  "labels": ["INBOX", "UNREAD"],
+  "timestamp": "2026-03-16T08:00:00Z"
+}

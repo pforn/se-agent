@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.customer_name if customer else "Not Found" }} — Tower FDE Agent{% endblock %}
+{% block content %}
+{% if customer %}
+<hgroup>
+    <h2>{{ customer.customer_name }}</h2>
+    <p><span class="phase-badge phase-{{ customer.phase }}">{{ customer.phase }}</span></p>
+</hgroup>
+
+<div class="grid">
+    <article>
+        <header>Details</header>
+        <p><strong>ID:</strong> {{ customer.customer_id }}</p>
+        <p><strong>Health Score:</strong> {{ customer.health_score or "—" }}</p>
+        <p><strong>Thread ID:</strong> {{ customer.thread_id or "—" }}</p>
+        <p><strong>Created:</strong> {{ customer.created_at[:10] }}</p>
+    </article>
+    <article>
+        <header>Pending Approvals</header>
+        <p>No pending approvals.</p>
+    </article>
+</div>
+{% else %}
+<p>Customer not found.</p>
+{% endif %}
+{% endblock %}

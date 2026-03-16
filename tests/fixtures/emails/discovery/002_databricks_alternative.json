@@ -1,0 +1,8 @@
+{
+  "from": "priya.patel@globelogistics.io",
+  "to": "fde@tower.dev",
+  "subject": "Looking at alternatives to Databricks Unity Catalog",
+  "body": "Hello,\n\nI'm Priya Patel, lead data engineer at Globe Logistics. We're a mid-size logistics company processing shipment data across 30 countries.\n\nCurrent setup:\n- Databricks on Azure (Unity Catalog for governance)\n- Delta Lake tables (~150TB across bronze/silver/gold)\n- Mix of Spark SQL and Python notebooks for ETL\n- Azure Data Factory for orchestration\n- PowerBI for reporting\n- Kafka for real-time shipment tracking events (~2M events/day)\n\nWe're evaluating moving to Iceberg because:\n1. Unity Catalog licensing is expensive and we feel locked into the Databricks ecosystem\n2. We want multi-engine access — some teams want to use Trino for ad-hoc queries\n3. Delta-to-Iceberg migration seems feasible with UniForm but we're not sure about catalog options\n4. Our Azure costs are significant and we're exploring a potential multi-cloud strategy\n\nWe're early in evaluation. No timeline pressure — just want to understand what Tower offers vs. running open-source Iceberg ourselves with something like Nessie or Polaris.\n\nThanks,\nPriya\n\nP.S. Our CTO, Marcus Webb, is supportive but skeptical of switching catalogs mid-year.",
+  "labels": ["INBOX", "UNREAD"],
+  "timestamp": "2026-03-15T14:15:00Z"
+}
