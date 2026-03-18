@@ -1,16 +1,28 @@
 import json
+import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.types import interrupt
 
 from src.graph.state import CustomerState
+from src.kb.indexer import index_discovery_summary, index_stack_analysis, index_use_cases
 from src.llm.models import get_llm
 from src.llm.prompts.discovery import GENERATE_DISCOVERY_SUMMARY_PROMPT
 from src.llm.prompts.system_tower import TOWER_SYSTEM_CONTEXT
 
+logger = logging.getLogger(__name__)
+
+
+def _index_all(state: CustomerState, doc_content: str) -> None:
+    try:
+        index_discovery_summary(state, doc_content)
+        index_stack_analysis(state)
+        index_use_cases(state)
+    except Exception:
+        logger.warning("KB indexing failed, continuing without indexing", exc_info=True)
+
 
 async def generate_discovery_summary(state: CustomerState) -> dict:
-    """Generate formatted discovery doc. interrupt() before writing to GDrive."""
     llm = get_llm("strong")
 
     tech_env = state.get("tech_env", {})
@@ -55,6 +67,7 @@ async def generate_discovery_summary(state: CustomerState) -> dict:
 
     action = decision.get("action", "approve")
     if action == "approve":
+        _index_all(state, summary_doc)
         doc_record = {
             "type": "discovery_summary",
             "title": f"Discovery Summary — {state.get('customer_name', 'Unknown')}",
@@ -84,6 +97,7 @@ async def generate_discovery_summary(state: CustomerState) -> dict:
         })
 
         if decision2.get("action") == "approve":
+            _index_all(state, revised_doc)
             doc_record = {
                 "type": "discovery_summary",
                 "title": f"Discovery Summary — {state.get('customer_name', 'Unknown')}",

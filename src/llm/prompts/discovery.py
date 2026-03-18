@@ -30,6 +30,9 @@ You are analyzing a prospect's technical stack for Tower FDE engagement.
 ## Iceberg Migration Patterns
 {iceberg_patterns}
 
+## Similar Customer Experiences
+{similar_contexts}
+
 ## Customer's Technical Environment
 {tech_env_json}
 

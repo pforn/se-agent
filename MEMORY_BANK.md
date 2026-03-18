@@ -8,7 +8,7 @@
 - **Name:** Tower FDE Workflow Agent
 - **Purpose:** Automate administrative work for a Forward Deployed Engineer at Tower (data platform on Apache Iceberg)
 - **Scope:** Discovery/qualification, PoC/demo prep, proposal drafting, post-call follow-up
-- **Status:** Milestone 2 complete — Milestone 3 next
+- **Status:** Milestone 3 complete — Milestone 4 next
 
 ## Architecture Decisions
 
@@ -34,7 +34,7 @@
 |---|---|---|
 | 1 | State schema + graph skeleton + SQLite + FastAPI + dummy fixtures | DONE |
 | 2 | Discovery subgraph + Tower product knowledge prompt | DONE |
-| 3 | ChromaDB KB + auto-indexing + retrieval | NOT STARTED |
+| 3 | ChromaDB KB + auto-indexing + retrieval | DONE |
 | 4 | Follow-up subgraph + interrupt/approval + Google Drive | NOT STARTED |
 | 5 | PoC subgraph + Tavily competitive research | NOT STARTED |
 | 6 | Proposal subgraph | NOT STARTED |
@@ -49,6 +49,11 @@
 - **KB grows organically.** Every approved work product auto-indexed to ChromaDB. No manual curation.
 - **`TechnicalEnvironment` is structured**, not free-text. Enables architecture reasoning.
 - **Model routing via `get_llm(tier)`** — "fast" (Haiku) or "strong" (Sonnet).
+- **`KBStore` singleton** via `get_kb_store()`. Lazy-initialized, warmed on app startup.
+- **5 ChromaDB collections:** `discovery_summaries`, `stack_analyses`, `use_cases`, `competitive_intel`, `meeting_notes`.
+- **KB retrieval in `analyze_stack`** — queries similar stack analyses (filtered by `cloud_provider`) and discovery summaries, injected as `{similar_contexts}` in the prompt.
+- **Auto-indexing on approval.** `generate_discovery_summary` indexes discovery summary + stack analysis + use cases on approve. `analyze_stack` auto-indexes its output (no approval needed).
+- **Graceful KB degradation.** All KB calls wrapped in try/except — first customer (empty KB) and KB failures don't break the graph.
 
 ## File Structure
 
