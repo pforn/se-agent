@@ -1,26 +1,65 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Tower FDE Agent{% endblock %}
 {% block content %}
-<h2>Customers</h2>
+<h2>Dashboard</h2>
 
-<details>
-    <summary>Add Customer</summary>
-    <form hx-post="/customer/create" hx-target="#customer-list" hx-swap="innerHTML">
-        <div class="grid">
-            <label>
-                ID
-                <input type="text" name="customer_id" placeholder="acme-corp" required>
-            </label>
-            <label>
-                Name
-                <input type="text" name="customer_name" placeholder="Acme Corp" required>
-            </label>
+<!-- Summary Cards -->
+<div class="summary-cards">
+    <article class="stat-card">
+        <div class="stat-value">{{ stats.total_customers }}</div>
+        <div class="stat-label">Customers</div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-value {% if stats.avg_health %}{% if stats.avg_health >= 70 %}health-high{% elif stats.avg_health >= 40 %}health-mid{% else %}health-low{% endif %}{% endif %}">
+            {{ stats.avg_health or "—" }}
         </div>
-        <button type="submit">Create</button>
-    </form>
-</details>
+        <div class="stat-label">Avg Health Score</div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-value">{{ stats.feedback_count }}</div>
+        <div class="stat-label">Feedback Items</div>
+    </article>
+</div>
 
-<div id="customer-list">
-    {% include "partials/customer_list.html" %}
+<!-- Main Content Grid -->
+<div class="dashboard-grid">
+    <!-- Customer List -->
+    <article class="dashboard-panel">
+        <header>
+            <strong>Customers</strong>
+            <details class="inline-dropdown">
+                <summary role="button" class="outline secondary small-btn">+ Add</summary>
+                <form hx-post="/customer/create" hx-target="#customer-list" hx-swap="innerHTML" class="add-form">
+                    <input type="text" name="customer_id" placeholder="acme-corp" required>
+                    <input type="text" name="customer_name" placeholder="Acme Corp" required>
+                    <button type="submit" class="small-btn">Create</button>
+                </form>
+            </details>
+        </header>
+        <div id="customer-list">
+            {% include "partials/customer_list.html" %}
+        </div>
+    </article>
+
+    <!-- Recent Activity -->
+    <article class="dashboard-panel">
+        <header><strong>Recent Activity</strong></header>
+        {% if stats.recent_activity %}
+        <div class="activity-feed">
+            {% for entry in stats.recent_activity %}
+            <div class="activity-item">
+                <span class="activity-badge badge-{{ entry.action | lower }}">{{ entry.action }}</span>
+                <span class="activity-detail">
+                    <strong>{{ entry.customer_name }}</strong>
+                    {% if entry.node_name %}<code>{{ entry.node_name }}</code>{% endif %}
+                </span>
+                <time class="activity-time">{{ entry.created_at[:10] }}</time>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="muted">No activity yet. Run a workflow to see actions here.</p>
+        {% endif %}
+    </article>
 </div>
 {% endblock %}

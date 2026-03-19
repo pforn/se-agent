@@ -2,25 +2,136 @@
 {% block title %}{{ customer.customer_name if customer else "Not Found" }} — Tower FDE Agent{% endblock %}
 {% block content %}
 {% if customer %}
-<hgroup>
-    <h2>{{ customer.customer_name }}</h2>
-    <p><span class="phase-badge phase-{{ customer.phase }}">{{ customer.phase }}</span></p>
-</hgroup>
-
-<div class="grid">
-    <article>
-        <header>Details</header>
-        <p><strong>ID:</strong> {{ customer.customer_id }}</p>
-        <p><strong>Health Score:</strong> {{ customer.health_score or "—" }}</p>
-        <p><strong>Thread ID:</strong> {{ customer.thread_id or "—" }}</p>
-        <p><strong>Created:</strong> {{ customer.created_at[:10] }}</p>
-    </article>
-    <article>
-        <header>Pending Approvals</header>
-        <p>No pending approvals.</p>
-    </article>
+<div class="customer-header">
+    <div>
+        <h2>{{ customer.customer_name }}</h2>
+        <span class="phase-badge phase-{{ customer.phase }}">{{ customer.phase }}</span>
+        {% if customer.health_score is not none %}
+        <span class="health-pill {% if customer.health_score >= 70 %}health-high{% elif customer.health_score >= 40 %}health-mid{% else %}health-low{% endif %}">
+            ● {{ customer.health_score }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="customer-meta">
+        <small><strong>ID:</strong> {{ customer.customer_id }}</small>
+        <small><strong>Thread:</strong> {{ customer.thread_id or "—" }}</small>
+        <small><strong>Created:</strong> {{ customer.created_at[:10] }}</small>
+    </div>
 </div>
+
+<!-- Tab Navigation -->
+<nav class="tab-nav">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="feedback"
+            hx-get="/customer/{{ customer.customer_id }}/feedback"
+            hx-target="#tab-feedback" hx-swap="innerHTML" hx-trigger="click once">Feedback</button>
+    <button class="tab-btn" data-tab="audit"
+            hx-get="/customer/{{ customer.customer_id }}/audit"
+            hx-target="#tab-audit" hx-swap="innerHTML" hx-trigger="click once">Audit Trail</button>
+</nav>
+
+<!-- Tab Content -->
+<div class="tab-panels">
+    <!-- Overview Tab -->
+    <div id="tab-overview" class="tab-panel active">
+        <div class="detail-grid">
+            <article>
+                <header><strong>Health Score Trend</strong></header>
+                {% if health_history %}
+                <div class="chart-container">
+                    <canvas id="healthChart"></canvas>
+                </div>
+                {% else %}
+                <p class="muted">No health score history yet.</p>
+                {% endif %}
+            </article>
+            <article>
+                <header><strong>Details</strong></header>
+                <dl class="detail-list">
+                    <div><dt>Phase</dt><dd><span class="phase-badge phase-{{ customer.phase }}">{{ customer.phase }}</span></dd></div>
+                    <div><dt>Health Score</dt><dd>{{ customer.health_score or "—" }}</dd></div>
+                    <div><dt>Updated</dt><dd>{{ customer.updated_at[:10] }}</dd></div>
+                </dl>
+            </article>
+        </div>
+
+        {% if audit_log %}
+        <article>
+            <header><strong>Recent Actions</strong></header>
+            <div class="activity-feed">
+                {% for entry in audit_log[:5] %}
+                <div class="activity-item">
+                    <span class="activity-badge badge-{{ entry.action | lower }}">{{ entry.action }}</span>
+                    {% if entry.node_name %}<code>{{ entry.node_name }}</code>{% endif %}
+                    {% if entry.details %}<span class="activity-detail">{{ entry.details[:80] }}</span>{% endif %}
+                    <time class="activity-time">{{ entry.created_at[:10] }}</time>
+                </div>
+                {% endfor %}
+            </div>
+        </article>
+        {% endif %}
+    </div>
+
+    <!-- Feedback Tab -->
+    <div id="tab-feedback" class="tab-panel">
+        {% include "partials/feedback_list.html" %}
+    </div>
+
+    <!-- Audit Trail Tab -->
+    <div id="tab-audit" class="tab-panel">
+        {% include "partials/audit_trail.html" %}
+    </div>
+</div>
+
 {% else %}
-<p>Customer not found.</p>
+<p>Customer not found. <a href="/">Back to dashboard</a></p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if customer and health_history %}
+<script>
+(function() {
+    const data = {{ health_history | tojson }};
+    const ctx = document.getElementById('healthChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.computed_at.slice(0, 10)),
+            datasets: [{
+                label: 'Health Score',
+                data: data.map(d => d.score),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 4,
+                pointBackgroundColor: '#6366f1',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { min: 0, max: 100, ticks: { stepSize: 20 } },
+                x: { ticks: { maxTicksLimit: 8 } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+});
+</script>
 {% endblock %}

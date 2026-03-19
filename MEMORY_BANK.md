@@ -38,7 +38,7 @@
 | 4 | Follow-up subgraph + interrupt/approval + Google Drive | DONE |
 | 5 | PoC subgraph + Tavily competitive research | DONE |
 | 6 | Proposal subgraph | DONE |
-| 7 | Dashboard + health scoring + feedback aggregation | NOT STARTED |
+| 7 | Dashboard + health scoring + feedback aggregation | DONE |
 | 8 | Gmail live integration, prompt tuning, Docker hardening | NOT STARTED |
 
 ## Key Patterns
@@ -77,6 +77,10 @@
 - **`compile_document` is a tool node (no LLM).** Assembles proposal_narrative + reference_architecture + deployment_plan into a single document. Uploads to GDrive on approve (graceful degradation if no GDrive). Produces `compiled_proposal` doc type.
 - **Proposal prompts** in `src/llm/prompts/proposal.py` — 3 templates: draft_proposal, reference_architecture, deployment_plan. `compile_document` has no prompt (tool node).
 - **Context chaining across proposal nodes.** `draft_proposal` reads discovery + competitive docs. `add_reference_architecture` reads PoC architecture + proposal narrative. `add_deployment_plan` reads PoC plan + architecture + proposal narrative. `compile_document` reads all 3 proposal sections.
+- **Dashboard UI (Milestone 7).** `dashboard.html` — summary cards (total customers, avg health, feedback count) + recent activity feed + customer table. `customer.html` — tabbed layout (Overview/Feedback/Audit) with Chart.js health trend chart, HTMX-loaded partials.
+- **Health score persistence.** `update_health_score` node persists score to `health_score_history` table and updates `customers.health_score` via `save_health_score()`. Graceful try/except — DB failure doesn't break the graph.
+- **`product_feedback` table.** Flat table in app SQLite. `save_product_feedback()` batch-inserts from graph state. `get_feedback_summary()` aggregates by severity and feature area.
+- **`get_dashboard_stats()` aggregation.** Single function powering summary cards: total customers, avg health score, feedback count, recent audit entries (with JOIN).
 
 ## File Structure
 

@@ -1,4 +1,5 @@
 import json
+import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -6,6 +7,8 @@ from src.graph.state import CustomerState
 from src.llm.models import get_llm
 from src.llm.prompts.followup import UPDATE_HEALTH_SCORE_PROMPT
 from src.llm.prompts.system_tower import TOWER_SYSTEM_CONTEXT
+
+logger = logging.getLogger(__name__)
 
 
 async def update_health_score(state: CustomerState) -> dict:
@@ -46,7 +49,21 @@ async def update_health_score(state: CustomerState) -> dict:
         else:
             return {"last_node": "update_health_score", "error": "Failed to parse health score response"}
 
+    new_score = result.get("health_score", state.get("health_score"))
+
+    # Persist to DB (graceful degradation — DB failure doesn't break the graph)
+    try:
+        from src.config import settings
+        from src.db.app_db import save_health_score
+
+        customer_id = state.get("customer_id")
+        if customer_id and new_score is not None:
+            save_health_score(settings.app_db_path, customer_id, new_score)
+    except Exception:
+        logger.warning("Failed to persist health score to DB", exc_info=True)
+
     return {
-        "health_score": result.get("health_score", state.get("health_score")),
+        "health_score": new_score,
         "last_node": "update_health_score",
     }
+

@@ -1,0 +1,21 @@
+{% if audit_log %}
+<div class="audit-timeline">
+    {% for entry in audit_log %}
+    <div class="audit-entry">
+        <div class="audit-marker"></div>
+        <div class="audit-content">
+            <div class="audit-header">
+                <span class="activity-badge badge-{{ entry.action | lower }}">{{ entry.action }}</span>
+                {% if entry.node_name %}<code>{{ entry.node_name }}</code>{% endif %}
+                <time>{{ entry.created_at[:19] | replace("T", " ") }}</time>
+            </div>
+            {% if entry.details %}
+            <p class="audit-details">{{ entry.details }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="muted">No audit entries for this customer.</p>
+{% endif %}

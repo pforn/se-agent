@@ -1,0 +1,16 @@
+{% if feedback %}
+<div class="feedback-cards">
+    {% for fb in feedback %}
+    <div class="feedback-card severity-{{ fb.severity }}">
+        <div class="feedback-header">
+            <span class="severity-badge severity-{{ fb.severity }}">{{ fb.severity | replace("_", " ") }}</span>
+            <span class="feedback-area">{{ fb.feature_area }}</span>
+            <time>{{ fb.created_at[:10] }}</time>
+        </div>
+        <p>{{ fb.description }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="muted">No product feedback recorded for this customer.</p>
+{% endif %}
