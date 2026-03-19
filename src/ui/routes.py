@@ -24,7 +24,10 @@ async def customer_detail(request: Request, customer_id: str):
 
 
 @router.post("/customer/create")
-async def create_customer(customer_id: str = Form(...), customer_name: str = Form(...)):
+async def create_customer(request: Request, customer_id: str = Form(...), customer_name: str = Form(...)):
     upsert_customer(settings.app_db_path, customer_id, customer_name)
     customers = list_customers(settings.app_db_path)
-    return templates.TemplateResponse("partials/customer_list.html", {"customers": customers})
+    return templates.TemplateResponse(
+        "partials/customer_list.html",
+        {"request": request, "customers": customers},
+    )

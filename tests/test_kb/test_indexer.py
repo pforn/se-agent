@@ -3,7 +3,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.kb.indexer import (
+    index_competitive_intel,
     index_discovery_summary,
+    index_meeting_notes,
+    index_product_feedback,
     index_stack_analysis,
     index_use_cases,
 )
@@ -142,5 +145,173 @@ class TestIndexUseCases:
         base_state["use_cases"] = []
         with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
             index_use_cases(base_state)
+
+        mock_store.add_document.assert_not_called()
+
+
+class TestIndexMeetingNotes:
+    def test_indexes_to_meeting_notes_collection(self, mock_store, base_state):
+        summary = "Met with Acme Corp. Discussed Snowflake migration timeline."
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_meeting_notes(base_state, summary)
+
+        mock_store.add_document.assert_called_once()
+        call = mock_store.add_document.call_args
+        assert call.kwargs["collection_name"] == "meeting_notes"
+        assert call.kwargs["text"] == summary
+        assert call.kwargs["metadata"]["customer_id"] == "acme-corp"
+        assert call.kwargs["metadata"]["customer_name"] == "Acme Corp"
+        assert call.kwargs["metadata"]["cloud_provider"] == "aws"
+
+    def test_doc_id_includes_customer_id_and_index(self, mock_store, base_state):
+        base_state["meeting_summaries"] = [{"type": "a"}, {"type": "b"}, {"type": "c"}]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_meeting_notes(base_state, "notes text")
+
+        call = mock_store.add_document.call_args
+        assert "acme-corp" in call.kwargs["doc_id"]
+        assert "3" in call.kwargs["doc_id"]
+
+    def test_uses_meeting_count_zero_when_no_summaries(self, mock_store, base_state):
+        base_state["meeting_summaries"] = []
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_meeting_notes(base_state, "first meeting")
+
+        call = mock_store.add_document.call_args
+        assert "0" in call.kwargs["doc_id"]
+
+
+class TestIndexProductFeedback:
+    def test_indexes_each_feedback_item_separately(self, mock_store, base_state):
+        base_state["product_feedback"] = [
+            {
+                "feature_area": "dbt integration",
+                "description": "Need dbt-core 1.8 support",
+                "customer": "Acme Corp",
+                "severity": "blocker",
+                "created_at": "2026-03-18T00:00:00Z",
+                "ticket_url": None,
+            },
+            {
+                "feature_area": "security",
+                "description": "SOC2 Type II certification needed",
+                "customer": "Acme Corp",
+                "severity": "important",
+                "created_at": "2026-03-18T00:00:00Z",
+                "ticket_url": None,
+            },
+        ]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_product_feedback(base_state)
+
+        assert mock_store.add_document.call_count == 2
+
+    def test_feedback_metadata_includes_severity_and_area(self, mock_store, base_state):
+        base_state["product_feedback"] = [
+            {
+                "feature_area": "dbt integration",
+                "description": "Need dbt-core 1.8 support",
+                "customer": "Acme Corp",
+                "severity": "blocker",
+                "created_at": "2026-03-18T00:00:00Z",
+                "ticket_url": None,
+            },
+        ]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_product_feedback(base_state)
+
+        call = mock_store.add_document.call_args
+        assert call.kwargs["metadata"]["severity"] == "blocker"
+        assert call.kwargs["metadata"]["feature_area"] == "dbt integration"
+        assert call.kwargs["collection_name"] == "competitive_intel"
+
+    def test_feedback_text_includes_description(self, mock_store, base_state):
+        base_state["product_feedback"] = [
+            {
+                "feature_area": "security",
+                "description": "SOC2 Type II certification needed",
+                "customer": "Acme Corp",
+                "severity": "important",
+                "created_at": "2026-03-18T00:00:00Z",
+                "ticket_url": None,
+            },
+        ]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_product_feedback(base_state)
+
+        call = mock_store.add_document.call_args
+        assert "SOC2 Type II certification needed" in call.kwargs["text"]
+        assert "security" in call.kwargs["text"]
+
+    def test_skips_if_no_product_feedback(self, mock_store, base_state):
+        base_state["product_feedback"] = []
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_product_feedback(base_state)
+
+        mock_store.add_document.assert_not_called()
+
+
+class TestIndexCompetitiveIntel:
+    def test_indexes_each_item_separately(self, mock_store, base_state):
+        base_state["competitive_intel"] = [
+            {
+                "competitor": "Snowflake",
+                "claim": "Better price-performance on Iceberg tables",
+                "tower_response": "Tower is serverless and avoids warehouse idle costs",
+                "source": "https://example.com/comparison",
+                "created_at": "2026-03-18T00:00:00Z",
+            },
+            {
+                "competitor": "Databricks",
+                "claim": "Delta UniForm provides Iceberg compatibility",
+                "tower_response": "Native Iceberg avoids format translation overhead",
+                "source": "Tavily research",
+                "created_at": "2026-03-18T00:00:00Z",
+            },
+        ]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_competitive_intel(base_state)
+
+        assert mock_store.add_document.call_count == 2
+
+    def test_metadata_includes_competitor(self, mock_store, base_state):
+        base_state["competitive_intel"] = [
+            {
+                "competitor": "Snowflake",
+                "claim": "Better performance",
+                "tower_response": "Serverless advantage",
+                "source": "web",
+                "created_at": "2026-03-18T00:00:00Z",
+            },
+        ]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_competitive_intel(base_state)
+
+        call = mock_store.add_document.call_args
+        assert call.kwargs["collection_name"] == "competitive_intel"
+        assert call.kwargs["metadata"]["competitor"] == "Snowflake"
+        assert call.kwargs["metadata"]["customer_id"] == "acme-corp"
+
+    def test_text_includes_claim_and_response(self, mock_store, base_state):
+        base_state["competitive_intel"] = [
+            {
+                "competitor": "Snowflake",
+                "claim": "Lower cost per query",
+                "tower_response": "Serverless eliminates idle compute",
+                "source": "analysis",
+                "created_at": "2026-03-18T00:00:00Z",
+            },
+        ]
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_competitive_intel(base_state)
+
+        call = mock_store.add_document.call_args
+        assert "Lower cost per query" in call.kwargs["text"]
+        assert "Serverless eliminates idle compute" in call.kwargs["text"]
+
+    def test_skips_if_no_competitive_intel(self, mock_store, base_state):
+        base_state["competitive_intel"] = []
+        with patch("src.kb.indexer.get_kb_store", return_value=mock_store):
+            index_competitive_intel(base_state)
 
         mock_store.add_document.assert_not_called()

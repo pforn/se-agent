@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     openrouter_api_key: str = ""
     tavily_api_key: str = ""
+    google_credentials_path: Path | None = None
     data_dir: Path = Path("./data")
 
     @property

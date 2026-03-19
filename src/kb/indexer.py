@@ -84,3 +84,70 @@ def index_use_cases(state: dict) -> None:
             text=text,
             metadata=meta,
         )
+
+
+def index_meeting_notes(state: dict, summary_content: str) -> None:
+    store = get_kb_store()
+    customer_id = state.get("customer_id", "unknown")
+    meeting_index = len(state.get("meeting_summaries", []))
+    meta = _base_metadata(state)
+    meta["created_at"] = state.get("updated_at", "")
+    store.add_document(
+        collection_name="meeting_notes",
+        doc_id=_doc_id("mn", customer_id, str(meeting_index)),
+        text=summary_content,
+        metadata=meta,
+    )
+
+
+def index_competitive_intel(state: dict) -> None:
+    intel_list = state.get("competitive_intel", [])
+    if not intel_list:
+        return
+
+    store = get_kb_store()
+    customer_id = state.get("customer_id", "unknown")
+
+    for i, item in enumerate(intel_list):
+        meta = _base_metadata(state)
+        meta["competitor"] = item.get("competitor", "")
+        meta["created_at"] = item.get("created_at", state.get("updated_at", ""))
+
+        text = f"[{item.get('competitor', '')}] {item.get('claim', '')}"
+        if item.get("tower_response"):
+            text += f"\nTower response: {item['tower_response']}"
+        if item.get("source"):
+            text += f"\nSource: {item['source']}"
+
+        store.add_document(
+            collection_name="competitive_intel",
+            doc_id=_doc_id("ci", customer_id, str(i)),
+            text=text,
+            metadata=meta,
+        )
+
+
+def index_product_feedback(state: dict) -> None:
+    feedback_list = state.get("product_feedback", [])
+    if not feedback_list:
+        return
+
+    store = get_kb_store()
+    customer_id = state.get("customer_id", "unknown")
+
+    for i, fb in enumerate(feedback_list):
+        meta = _base_metadata(state)
+        meta["severity"] = fb.get("severity", "unknown")
+        meta["feature_area"] = fb.get("feature_area", "")
+        meta["created_at"] = fb.get("created_at", state.get("updated_at", ""))
+
+        text = f"[{fb.get('feature_area', '')}] {fb.get('description', '')}"
+        if fb.get("customer"):
+            text += f"\nCustomer: {fb['customer']}"
+
+        store.add_document(
+            collection_name="competitive_intel",
+            doc_id=_doc_id("pf", customer_id, str(i)),
+            text=text,
+            metadata=meta,
+        )
